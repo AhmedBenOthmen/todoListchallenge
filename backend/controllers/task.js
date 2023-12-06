@@ -1,112 +1,117 @@
-const Task = require("../models/task.js");
+const Task = require('../models/task.js')
 
-exports.createTask = async (req, res) => {
-  // const {name, description}= req.body;
-  try {
-    const newTask = await Task.create(req.body);
-    const isExisting = await Task.findOne({name:req.body.name, isActive:true})
-    if (isExisting && isExisting.isActive === true){
+exports.createTask = async (req,res)=>{
+    const { name, description} = req.body ;
+    try {
+       const newTask = new Task(req.body)
+       const isExisting = await Task.findOne({name:req.body.name, isActive:true})
+       if (isExisting ) {
         return res.status(200).json({
-            payload : "TASK ALREADY EXISTING"
+            payload :" Task already exists"
+        })
+       }
+       await newTask.save();
+       return res.status(201).json({
+        payload:"Task Created"
+       })
+        
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            payload:"Error adding a task"
         })
     }
-    await newTask.save();
-    res.status(201).json({
-      payload: "task created",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      payload: "ERROR ADDING A TASK",
-    });
-  }
-};
+}
 
-exports.getAllTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({isActive:true});
-    let data;
-    if (tasks && !tasks.lenght) {
-      data = "no data found";
-    } else {
-      data = tasks;
+exports.getAllTasks = async(req,res)=>{
+    try {
+        const tasks = await Task.find({isActive:true});
+        let data
+
+        if (tasks && !tasks.length) {
+            data = "No Data Found";
+        }else {
+            data = tasks
+        }
+        return res.status(200).json({
+            payload: data
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message:"Error IN getAllTask"
+        })
+    }
+}
+
+exports.getOneTask = async(req,res)=>{
+try {
+    const task = await Task.findOne({_id:req.params.id , isActive:true})
+    let data
+    if (task) {
+        data = task
+    }else {
+        data = "No Data Found"
     }
 
     return res.status(200).json({
-      payload: tasks,
-    });
-  } catch (error) {
+        payload:data
+    })
+} catch (error) {
+    console.log(error)
     res.status(500).json({
-      payload: "error getAllTasks",
-    });
-  }
-};
-
-
-
-exports.getOneTask = async (req,res)=>{
-    try {
-        const task = await Task.findOne({_id:req.params.id, isActive:true})
-        let data
-        if(task){
-            data = task
-        }else {
-            data = "NO DATA FOUND"
-        }
-        res.status(200).json({
-            payload:data
-        })
-    } catch (error) {
-        res.status(500).json({
-            payload: "error getOneTask",
-          });
-    }
+        message:"Error IN getOneTask"
+    })
+}
 }
 
-
-
-exports.updateTask = async (req,res)=>{
+exports.updateTask =async(req,res)=>{
     try {
-        const isExisting = await Task.findOne({name:req.body.name, isActive:true})
-        if (isExisting && isExisting.isActive === true){
+        const isExisting = await Task.findOne({ name: req.body.name, isActive: true })
+        if (isExisting) {
             return res.status(200).json({
-                payload : "CANT UPDATE NAME ALREADY EXISTING"
+                payload: " can't updated this task because it is  already existing"
             })
         }
-        const task = await Task.findOneAndUpdate({_id:req.params.id,isActive:true},req.body,{new:true})
+        const task = await Task.findOneAndUpdate({ _id: req.params.id, isActive: true }, req.body, { new: true })
         let data
-        if(task){
+        if (task) {
             data = task
-        }else {
-            data = "NO DATA FOUND"
+        } else {
+            data = "No Data Found"
         }
-        res.status(200).json({
-            payload:data
+
+        return res.status(200).json({
+            payload: data
         })
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
-            payload: "error updateTask",
-          });
+            message:"Error IN updateTask"
+        })
     }
 }
-
 
 exports.deleteTask = async (req,res)=>{
     try {
-        const task = await Task.findOneAndUpdate({_id:req.params.id},{isActive:false})
+        const task = await Task.findOneAndUpdate({ _id: req.params.id }, { isActive: false })
         let data
-        if(task){
-            data = "Task is deleted"
-        }else {
-            data = "no data found"
+        if (task) {
+            data = "Task is Deleted"
+        } else {
+            data = "No Data Found"
         }
+
         return res.status(200).json({
-            payload : data
+            payload: data
         })
+
     } catch (error) {
+        console.log(error)
         res.status(500).json({
-            payload: "error deleteTask",
-          });
+            message:"Error IN DeleteTask"
+        })
     }
 }
